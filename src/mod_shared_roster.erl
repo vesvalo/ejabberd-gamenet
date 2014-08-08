@@ -148,34 +148,46 @@ get_user_roster(Items, US) ->
 					      Acc1, get_group_users(S, Group))
 			  end,
 			  dict:new(), DisplayedGroups),
-    {NewItems1, SRUsersRest} = lists:mapfoldl(fun (Item,
-						   SRUsers1) ->
-						      {_, _, {U1, S1, _}} =
-							  Item#roster.usj,
-						      US1 = {U1, S1},
-						      case dict:find(US1,
-								     SRUsers1)
-							  of
-							{ok, _GroupNames} ->
-							    {Item#roster{subscription
-									     =
-									     both,
-									 ask =
-									     none},
-							     dict:erase(US1,
-									SRUsers1)};
-							error ->
-							    {Item, SRUsers1}
-						      end
-					      end,
-					      SRUsers, Items),
+%% leave users in roster and in shared roster too
+%%    {NewItems1, SRUsersRest} = lists:mapfoldl(fun (Item,
+%%						   SRUsers1) ->
+%%						      {_, _, {U1, S1, _}} =
+%%							  Item#roster.usj,
+%%						      US1 = {U1, S1},
+%%						      case dict:find(US1,
+%%								     SRUsers1)
+%%							  of
+%%							{ok, _GroupNames} ->
+%%							    {Item#roster{subscription
+%%									     =
+%%									     both,
+%%									 ask =
+%%									     none},
+%%							     dict:erase(US1,
+%%									SRUsers1)};
+%%							error ->
+%%							    {Item, SRUsers1}
+%%						      end
+%%					      end,
+%%					      SRUsers, Items),
+	{NewItems1, SRUsersRest} = {Items, SRUsers},
+	
     ModVcard = get_vcard_module(S),
     SRItems = [#roster{usj = {U, S, {U1, S1, <<"">>}},
 		       us = US, jid = {U1, S1, <<"">>},
 		       name = get_rosteritem_name(ModVcard, U1, S1),
 		       subscription = both, ask = none, groups = GroupNames}
 	       || {{U1, S1}, GroupNames} <- dict:to_list(SRUsersRest)],
-    SRItems ++ NewItems1.
+%%    SRItems ++ NewItems1.
+    SRItems ++ lists:map(fun(L) ->
+		{A1,A2,A3,A4,A5,A6,A7,A8,A9,A10}=L,
+		{UU,SS,_}=A4,
+		case lists:keyfind({UU,SS},1,dict:to_list(SRUsers)) of
+			{_,Gr} -> {A1,A2,A3,A4,A5,A6,A7,A8++Gr,A9,A10};
+			_-> L
+		end
+	end, Items).
+
 
 get_vcard_module(Server) ->
     Modules = gen_mod:loaded_modules(Server),
@@ -582,22 +594,27 @@ get_user_groups(US, Host, odbc) ->
     end.
 
 is_group_enabled(Host1, Group1) ->
-    {Host, Group} = split_grouphost(Host1, Group1),
-    case get_group_opts(Host, Group) of
-      error -> false;
-      Opts -> not lists:member(disabled, Opts)
-    end.
+%% all shared groups should be enabled
+%%    {Host, Group} = split_grouphost(Host1, Group1),
+%%    case get_group_opts(Host, Group) of
+%%      error -> false;
+%%      Opts -> not lists:member(disabled, Opts)
+%%    end.
+	true.
+
 
 %% @spec (Host::string(), Group::string(), Opt::atom(), Default) -> OptValue | Default
 get_group_opt(Host, Group, Opt, Default) ->
-    case get_group_opts(Host, Group) of
-      error -> Default;
-      Opts ->
-	  case lists:keysearch(Opt, 1, Opts) of
-	    {value, {_, Val}} -> Val;
-	    false -> Default
-	  end
-    end.
+%% return only default values for groups (too much sql queries and very slow performance of original code!!)
+%%    case get_group_opts(Host, Group) of
+%%      error -> Default;
+%%      Opts ->
+%%	  case lists:keysearch(Opt, 1, Opts) of
+%%	    {value, {_, Val}} -> Val;
+%%	    false -> Default
+%%	  end
+%%    end.
+	Default.
 
 get_online_users(Host) ->
     lists:usort([{U, S}
@@ -760,21 +777,23 @@ get_user_displayed_groups(LUser, LServer, GroupsOpts,
 %% @doc Get the list of groups that are displayed to this user
 get_user_displayed_groups(US) ->
     Host = element(2, US),
-    DisplayedGroups1 = lists:usort(lists:flatmap(fun
-						   (Group) ->
-						       case
-							 is_group_enabled(Host,
-									  Group)
-							   of
-							 true ->
-							     get_group_opt(Host,
-									   Group,
-									   displayed_groups,
-									   []);
-							 false -> []
-						       end
-						 end,
-						 get_user_groups(US))),
+%% all groups are enabled and visible in our case, so we just need to sort out the list
+%%    DisplayedGroups1 = lists:usort(lists:flatmap(fun
+%%						   (Group) ->
+%%						       case
+%%							 is_group_enabled(Host,
+%%									  Group)
+%%							   of
+%%							 true ->
+%%							     get_group_opt(Host,
+%%									   Group,
+%%									   displayed_groups,
+%%									   []);
+%%							 false -> []
+%%						       end
+%%						 end,
+%%						 get_user_groups(US))),
+	DisplayedGroups1 = lists:usort(get_user_groups(US)),
     [Group
      || Group <- DisplayedGroups1,
 	is_group_enabled(Host, Group)].
