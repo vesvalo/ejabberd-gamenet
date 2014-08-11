@@ -691,20 +691,24 @@ get_group_name(Host1, Group1) ->
 
 %% Get list of names of groups that have @all@/@online@/etc in the memberlist
 get_special_users_groups(Host) ->
-%% Get list of names of groups that have @online@ in the memberlist
-    lists:filter(fun (Group) ->
-			 get_group_opt(Host, Group, all_users, false) orelse
-			   get_group_opt(Host, Group, online_users, false)
-		 end,
-		 list_groups(Host)).
+%%%% Get list of names of groups that have @online@ in the memberlist
+%%    lists:filter(fun (Group) ->
+%%			 get_group_opt(Host, Group, all_users, false) orelse
+%%			   get_group_opt(Host, Group, online_users, false)
+%%		 end,
+%%		 list_groups(Host)).
+%% we don't have @all@ and @online@ shared groups so we don't need this. 
+	[].
 
 get_special_users_groups_online(Host) ->
-%% Given two lists of groupnames and their options,
-%% return the list of displayed groups to the second list
-    lists:filter(fun (Group) ->
-			 get_group_opt(Host, Group, online_users, false)
-		 end,
-		 list_groups(Host)).
+%%%% Given two lists of groupnames and their options,
+%%%% return the list of displayed groups to the second list
+%%    lists:filter(fun (Group) ->
+%%			 get_group_opt(Host, Group, online_users, false)
+%%		 end,
+%%		 list_groups(Host)).
+%% we don't have online_users shared groups so we don't need this.
+	[].
 
 displayed_groups(GroupsOpts, SelectedGroupsOpts) ->
 %% Given a list of group names with options,
