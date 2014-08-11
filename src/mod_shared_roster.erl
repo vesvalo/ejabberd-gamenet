@@ -614,7 +614,10 @@ get_group_opt(Host, Group, Opt, Default) ->
 %%	    false -> Default
 %%	  end
 %%    end.
-	Default.
+	case Opt of.
+		displayed_groups -> [Group];
+		_-> Default
+    end.
 
 get_online_users(Host) ->
     lists:usort([{U, S}
