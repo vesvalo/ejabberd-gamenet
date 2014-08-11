@@ -614,7 +614,7 @@ get_group_opt(Host, Group, Opt, Default) ->
 %%	    false -> Default
 %%	  end
 %%    end.
-	case Opt of.
+	case Opt of
 		displayed_groups -> [Group];
 		_-> Default
     end.
