@@ -899,13 +899,14 @@ add_user_to_group(Host, US, Group, odbc) ->
 
 push_displayed_to_user(LUser, LServer, Group, Host,
 		       Subscription) ->
-    GroupsOpts = groups_with_opts(LServer),
-    GroupOpts = proplists:get_value(Group, GroupsOpts, []),
-    DisplayedGroups = proplists:get_value(displayed_groups,
-					  GroupOpts, []),
-    [push_members_to_user(LUser, LServer, DGroup, Host,
-			  Subscription)
-     || DGroup <- DisplayedGroups].
+%%    GroupsOpts = groups_with_opts(LServer),
+%%    GroupOpts = proplists:get_value(Group, GroupsOpts, []),
+%%    DisplayedGroups = proplists:get_value(displayed_groups,
+%%					  GroupOpts, []),
+%%    [push_members_to_user(LUser, LServer, DGroup, Host,
+%%			  Subscription)
+%%    || DGroup <- DisplayedGroups].
+	[push_members_to_user(LUser, LServer, Group, Host, Subscription)].
 
 remove_user_from_group(Host, US, Group) ->
     {LUser, LServer} = US,
@@ -952,9 +953,10 @@ remove_user_from_group(Host, US, Group, odbc) ->
 
 push_members_to_user(LUser, LServer, Group, Host,
 		     Subscription) ->
-    GroupsOpts = groups_with_opts(LServer),
-    GroupOpts = proplists:get_value(Group, GroupsOpts, []),
-    GroupName = proplists:get_value(name, GroupOpts, Group),
+%%    GroupsOpts = groups_with_opts(LServer),
+%%    GroupOpts = proplists:get_value(Group, GroupsOpts, []),
+%%    GroupName = proplists:get_value(name, GroupOpts, Group),
+		GroupName = get_group_opt(Host, Group, name, Group),
     Members = get_group_users(Host, Group),
     lists:foreach(fun ({U, S}) ->
 			  push_roster_item(LUser, LServer, U, S, GroupName,
@@ -999,15 +1001,18 @@ push_user_to_members(User, Server, Subscription) ->
 
 push_user_to_displayed(LUser, LServer, Group, Host,
 		       Subscription) ->
-    GroupsOpts = groups_with_opts(Host),
-    GroupOpts = proplists:get_value(Group, GroupsOpts, []),
-    GroupName = proplists:get_value(name, GroupOpts, Group),
-    DisplayedToGroupsOpts = displayed_to_groups(Group,
-						Host),
-    [push_user_to_group(LUser, LServer, GroupD, Host,
-			GroupName, Subscription)
-     || {GroupD, _Opts} <- DisplayedToGroupsOpts].
+%%    GroupsOpts = groups_with_opts(Host),
+%%    GroupOpts = proplists:get_value(Group, GroupsOpts, []),
+%%    GroupName = proplists:get_value(name, GroupOpts, Group),
+%%    DisplayedToGroupsOpts = displayed_to_groups(Group,
+%%						Host),
+%%    [push_user_to_group(LUser, LServer, GroupD, Host,
+%%			GroupName, Subscription)
+%%     || {GroupD, _Opts} <- DisplayedToGroupsOpts].
+		GroupName = get_group_opt(Host, Group, name, Group),
+		[push_user_to_group(LUser, LServer, Group, Host, GroupName, Subscription)].
 
+		
 push_user_to_group(LUser, LServer, Group, Host,
 		   GroupName, Subscription) ->
     lists:foreach(fun ({U, S})
