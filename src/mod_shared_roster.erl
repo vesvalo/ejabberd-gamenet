@@ -616,6 +616,15 @@ get_group_opt(Host, Group, Opt, Default) ->
 %%    end.
 	case Opt of
 		displayed_groups -> [Group];
+		name ->
+			case get_group_opts(Host, Group) of
+				error -> Default;
+				Opts ->
+				case lists:keysearch(Opt, 1, Opts) of
+					{value, {_, Val}} -> Val;
+					false -> Default
+				end
+			end;
 		_-> Default
     end.
 
